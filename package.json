@@ -1,0 +1,23 @@
+{
+  "name": "banking-app-typescript-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright TypeScript end-to-end tests for the Banking_Application repository",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit",
+    "test:auth": "playwright test tests/auth.spec.ts",
+    "test:flows": "playwright test tests/banking-flows.spec.ts",
+    "test:runner": "node scripts/test-runner.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.0",
+    "@types/node": "^22.15.21",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.8.3"
+  }
+}
