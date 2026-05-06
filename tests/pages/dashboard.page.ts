@@ -8,6 +8,7 @@ export class DashboardPage {
   }
 
   async isWelcomeVisible() {
-    await expect(this.page.getByRole('heading', { name: /welcome/i })).toBeVisible();
+    // Match the actual heading on the dashboard
+    await expect(this.page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
   }
 }
