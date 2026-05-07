@@ -5,7 +5,6 @@ on:
     branches:
       - master
   schedule:
-    # 11:01 PM IST = 5:31 PM UTC
     - cron: '31 17 * * *'
   workflow_dispatch:
 
@@ -13,6 +12,7 @@ jobs:
   test-and-report:
     runs-on: ubuntu-latest
     steps:
+      # Source Checkout & Node Setup
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -21,9 +21,11 @@ jobs:
         with:
           node-version: 20
 
+      # Dependency Installation
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit --progress=false
 
+      # Playwright Browser Caching
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
@@ -44,23 +46,21 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps
 
+      # Database Migration & Seeding
       - name: Download migration files from backend repo
         run: |
           set -e
           mkdir -p db/migrations
           echo "Downloading 001_create_schema.sql..."
-          # Update the URL below if your migration file is at a different path or filename
           curl -w '%{http_code}\n' -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/001_create_schema.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/001_create_schema.sql || {
             echo "curl failed for 001_create_schema.sql with exit code $?";
             exit 1;
           }
           echo "Downloading 002_seed_initial_data.sql..."
-          # Update the URL below if your migration file is at a different path or filename
           curl -w '%{http_code}\n' -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/002_seed_initial_data.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/002_seed_initial_data.sql || {
             echo "curl failed for 002_seed_initial_data.sql with exit code $?";
             exit 1;
           }
-          # Check for HTTP errors or missing files
           for f in db/migrations/001_create_schema.sql db/migrations/002_seed_initial_data.sql; do
             if ! grep -q -i 'CREATE\|INSERT\|TABLE' "$f"; then
               echo "Migration file $f is missing or invalid."
@@ -77,6 +77,7 @@ jobs:
           sqlite3 banking.sqlite < db/migrations/001_create_schema.sql
           sqlite3 banking.sqlite < db/migrations/002_seed_initial_data.sql
 
+      # Artifact Fetching
       - name: Trigger Banking_Application dev pipeline
         uses: peter-evans/repository-dispatch@v3
         with:
@@ -93,6 +94,7 @@ jobs:
         run: |
           node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml backend-build ${{ secrets.BANKING_APP_TOKEN }}
 
+      # Backend Setup
       - name: Install backend dependencies
         run: |
           cd backend-build && if [ -f package.json ]; then npm ci --prefer-offline --no-audit --progress=false; fi
@@ -136,6 +138,7 @@ jobs:
       - name: Test backend health
         run: curl -v http://localhost:4000 || true
 
+      # Frontend Setup
       - name: Install static server
         run: npm install -g serve
 
@@ -143,17 +146,26 @@ jobs:
         run: nohup serve -l 5173 frontend-build > serve.log 2>&1 &
 
       - name: Wait for frontend server to be ready
-        run: npx wait-on http://localhost:5173
+        run: npx wait-on http://localhost:5173/login
 
+      # Playwright Tests & Reporting
       - name: Run Playwright tests
         run: npx playwright test
 
-      - name: Upload Playwright HTML report
+      - name: Zip all test reports and artifacts
+        if: always()
+        run: |
+          mkdir -p test-reports
+          cp -r playwright-report test-reports/
+          cp -r test-results test-reports/ || true
+          zip -r test-reports.zip test-reports
+
+      - name: Upload all test reports and screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-html-report
-          path: playwright-report/
+          name: all-test-reports
+          path: test-reports.zip
           if-no-files-found: warn
 
       - name: Send Playwright HTML report via email
