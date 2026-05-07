@@ -25,12 +25,18 @@ jobs:
         run: npm ci
 
       - name: Cache Playwright browsers
+        id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             playwright-browsers-${{ runner.os }}-
+
+      - name: Show Playwright cache result
+        run: |
+          echo "Cache hit: ${{ steps.playwright-cache.outputs.cache-hit }}"
+          ls -lh ~/.cache/ms-playwright || echo 'No Playwright browser cache found.'
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
