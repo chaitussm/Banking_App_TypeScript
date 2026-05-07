@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: YOUR_GITHUB_USERNAME/Banking_Application
-          path: ../Banking_Application
+          path: Banking_Application
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -25,16 +25,16 @@ jobs:
         run: npm install -g wait-on
       - name: Install frontend dependencies
         run: npm ci
-        working-directory: ../Banking_Application/frontend
+        working-directory: Banking_Application/frontend
       - name: Install backend dependencies
         run: npm ci
-        working-directory: ../Banking_Application/backend
+        working-directory: Banking_Application/backend
       - name: Start backend
         run: npm run dev &
-        working-directory: ../Banking_Application/backend
+        working-directory: Banking_Application/backend
       - name: Start frontend
         run: npm run dev &
-        working-directory: ../Banking_Application/frontend
+        working-directory: Banking_Application/frontend
       - name: Wait for servers
         run: wait-on http://localhost:5173 http://localhost:4000
       - name: Run Playwright tests
