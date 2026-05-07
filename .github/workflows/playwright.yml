@@ -8,6 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout Banking_Application repo
+        uses: actions/checkout@v4
+        with:
+          repository: YOUR_GITHUB_USERNAME/Banking_Application
+          path: ../Banking_Application
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
