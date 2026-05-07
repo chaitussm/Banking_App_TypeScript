@@ -11,7 +11,7 @@ jobs:
       - name: Checkout Banking_Application repo
         uses: actions/checkout@v4
         with:
-          repository: YOUR_GITHUB_USERNAME/Banking_Application
+          repository: chaitussm/Banking_Application
           path: Banking_Application
       - name: Set up Node.js
         uses: actions/setup-node@v4
