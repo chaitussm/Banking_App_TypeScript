@@ -30,11 +30,18 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Download frontend build artifact
-        uses: actions/download-artifact@v4
+
+      - name: Trigger Banking_Application dev pipeline
+        uses: peter-evans/repository-dispatch@v3
         with:
-          name: frontend-build
-          path: frontend-build
+          token: ${{ secrets.BANKING_APP_TOKEN }}
+          repository: chaitussm/Banking_Application
+          event-type: trigger-dev-pipeline
+
+      - name: Fetch frontend-build artifact from Banking_Application
+        run: |
+          npm install node-fetch@2 unzipper
+          node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml frontend-build ${{ secrets.BANKING_APP_TOKEN }}
 
       - name: Install static server
         run: npm install -g serve
