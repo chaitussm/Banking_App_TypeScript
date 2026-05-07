@@ -47,13 +47,13 @@ jobs:
           mkdir -p db/migrations
           echo "Downloading 001_create_schema.sql..."
           # Update the URL below if your migration file is at a different path or filename
-          curl -w '%{http_code}\n' -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/001_create_schema.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/db/migrations/001_create_schema.sql || {
+          curl -w '%{http_code}\n' -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/001_create_schema.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/001_create_schema.sql || {
             echo "curl failed for 001_create_schema.sql with exit code $?";
             exit 1;
           }
           echo "Downloading 002_seed_initial_data.sql..."
           # Update the URL below if your migration file is at a different path or filename
-          curl -w '%{http_code}\n' -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/002_seed_initial_data.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/db/migrations/002_seed_initial_data.sql || {
+          curl -w '%{http_code}\n' -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/002_seed_initial_data.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/002_seed_initial_data.sql || {
             echo "curl failed for 002_seed_initial_data.sql with exit code $?";
             exit 1;
           }
