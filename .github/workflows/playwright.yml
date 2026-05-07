@@ -17,20 +17,44 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+      - name: Cache test repo dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-testrepo-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-testrepo-
       - name: Install dependencies (test repo)
         run: npm ci
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Install start-server-and-test and concurrently
         run: npm install -g start-server-and-test concurrently
+      - name: Cache frontend dependencies
+        uses: actions/cache@v4
+        with:
+          path: Banking_Application/frontend/node_modules
+          key: ${{ runner.os }}-frontend-${{ hashFiles('Banking_Application/frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
       - name: Install frontend dependencies
         run: npm ci
         working-directory: Banking_Application/frontend
+      - name: Cache backend dependencies
+        uses: actions/cache@v4
+        with:
+          path: Banking_Application/backend/node_modules
+          key: ${{ runner.os }}-backend-${{ hashFiles('Banking_Application/backend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-backend-
       - name: Install backend dependencies
         run: npm ci
         working-directory: Banking_Application/backend
+      - name: Build frontend
+        run: npm run build
+        working-directory: Banking_Application/frontend
       - name: Run servers and Playwright tests
-        run: start-server-and-test "concurrently --kill-others --raw 'npm --prefix Banking_Application/backend run dev' 'npm --prefix Banking_Application/frontend run dev'" "http-get://localhost:4000 http-get://localhost:5173" "npx playwright test"
+        run: start-server-and-test "concurrently --kill-others --raw 'npm --prefix Banking_Application/backend run dev' 'npm --prefix Banking_Application/frontend run preview'" "http-get://localhost:4000 http-get://localhost:5173" "npx playwright test"
       - name: Upload Playwright HTML report
         uses: actions/upload-artifact@v4
         with:
