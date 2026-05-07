@@ -63,8 +63,8 @@ jobs:
 
       - name: Initialize and seed SQLite database
         run: |
-          chmod +x ./scripts/init_db.sh
-          ./scripts/init_db.sh
+          sqlite3 banking.sqlite < db/migrations/001_create_schema.sql
+          sqlite3 banking.sqlite < db/migrations/002_seed_initial_data.sql
 
       - name: Install backend dependencies
         run: |
