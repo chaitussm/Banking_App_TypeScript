@@ -22,7 +22,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --progress=false
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -37,8 +37,11 @@ jobs:
         run: |
           echo "Cache hit: ${{ steps.playwright-cache.outputs.cache-hit }}"
           ls -lh ~/.cache/ms-playwright || echo 'No Playwright browser cache found.'
+          du -sh ~/.cache/ms-playwright || echo 'No Playwright browser cache found.'
+          echo "If cache hit is false, browser install will be slow."
 
-      - name: Install Playwright Browsers
+      - name: Install Playwright Browsers (if cache miss)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps
 
       - name: Download migration files from backend repo
@@ -92,7 +95,7 @@ jobs:
 
       - name: Install backend dependencies
         run: |
-          cd backend-build && if [ -f package.json ]; then npm ci; fi
+          cd backend-build && if [ -f package.json ]; then npm ci --prefer-offline --no-audit --progress=false; fi
 
       - name: Start backend server
         run: |
