@@ -37,6 +37,7 @@ jobs:
         run: |
           echo "Cache hit: ${{ steps.playwright-cache.outputs.cache-hit }}"
           ls -lh ~/.cache/ms-playwright || echo 'No Playwright browser cache found.'
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
@@ -72,6 +73,16 @@ jobs:
         run: |
           echo "\n===== FULL BACKEND LOG ====="
           cat backend.log || echo 'No backend.log found.'
+
+      - name: Print last 100 lines of backend log
+        run: |
+          echo "\n===== LAST 100 LINES OF BACKEND LOG ====="
+          tail -n 100 backend.log || echo 'No backend.log found.'
+
+      - name: Print environment variables
+        run: |
+          echo "\n===== ENVIRONMENT VARIABLES ====="
+          printenv | sort
 
       - name: Fail if backend process not running
         run: |
