@@ -12,8 +12,6 @@ on:
 jobs:
   test-and-report:
     runs-on: ubuntu-latest
-    env:
-      RUN_BACKEND: ${{ secrets.RUN_BACKEND || 'false' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -49,22 +47,18 @@ jobs:
           node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml frontend-build ${{ secrets.BANKING_APP_TOKEN }}
 
       - name: Fetch backend-build artifact from Banking_Application
-        if: env.RUN_BACKEND == 'true'
         run: |
           node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml backend-build ${{ secrets.BANKING_APP_TOKEN }}
 
       - name: Install backend dependencies
-        if: env.RUN_BACKEND == 'true'
         run: |
           cd backend-build && if [ -f package.json ]; then npm ci; fi
 
       - name: Start backend server
-        if: env.RUN_BACKEND == 'true'
         run: |
           cd backend-build && nohup npm start > ../backend.log 2>&1 &
 
       - name: Wait for backend to be ready
-        if: env.RUN_BACKEND == 'true'
         run: npx wait-on --timeout=20000 http://localhost:4000
 
       - name: Install static server
