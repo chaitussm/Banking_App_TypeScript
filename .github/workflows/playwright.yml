@@ -57,6 +57,15 @@ jobs:
         run: |
           node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml backend-build ${{ secrets.BANKING_APP_TOKEN }}
 
+
+      - name: Set DB_PATH environment variable
+        run: echo "DB_PATH=banking.sqlite" >> $GITHUB_ENV
+
+      - name: Initialize and seed SQLite database
+        run: |
+          chmod +x ./scripts/init_db.sh
+          ./scripts/init_db.sh
+
       - name: Install backend dependencies
         run: |
           cd backend-build && if [ -f package.json ]; then npm ci; fi
