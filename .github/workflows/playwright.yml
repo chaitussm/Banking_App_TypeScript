@@ -17,6 +17,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+      - name: test repo cache
+        run: echo "::group::Test repo cache"
       - name: Cache test repo dependencies
         uses: actions/cache@v4
         with:
@@ -24,12 +26,20 @@ jobs:
           key: ${{ runner.os }}-testrepo-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-testrepo-
+      - name: test repo cache end
+        run: echo "::endgroup::"
+      - name: test repo install start
+        run: echo "::group::Test repo npm ci"
       - name: Install dependencies (test repo)
         run: npm ci
+      - name: test repo install end
+        run: echo "::endgroup::"
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Install start-server-and-test and concurrently
         run: npm install -g start-server-and-test concurrently
+      - name: frontend cache start
+        run: echo "::group::Frontend cache"
       - name: Cache frontend dependencies
         uses: actions/cache@v4
         with:
@@ -37,9 +47,17 @@ jobs:
           key: ${{ runner.os }}-frontend-${{ hashFiles('Banking_Application/frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-frontend-
+      - name: frontend cache end
+        run: echo "::endgroup::"
+      - name: frontend install start
+        run: echo "::group::Frontend npm ci"
       - name: Install frontend dependencies
         run: npm ci
         working-directory: Banking_Application/frontend
+      - name: frontend install end
+        run: echo "::endgroup::"
+      - name: backend cache start
+        run: echo "::group::Backend cache"
       - name: Cache backend dependencies
         uses: actions/cache@v4
         with:
@@ -47,14 +65,28 @@ jobs:
           key: ${{ runner.os }}-backend-${{ hashFiles('Banking_Application/backend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-backend-
+      - name: backend cache end
+        run: echo "::endgroup::"
+      - name: backend install start
+        run: echo "::group::Backend npm ci"
       - name: Install backend dependencies
         run: npm ci
         working-directory: Banking_Application/backend
+      - name: backend install end
+        run: echo "::endgroup::"
+      - name: frontend build start
+        run: echo "::group::Frontend build"
       - name: Build frontend
         run: npm run build
         working-directory: Banking_Application/frontend
+      - name: frontend build end
+        run: echo "::endgroup::"
+      - name: servers and Playwright tests start
+        run: echo "::group::Servers and Playwright tests"
       - name: Run servers and Playwright tests
         run: start-server-and-test "concurrently --kill-others --raw 'npm --prefix Banking_Application/backend run dev' 'npm --prefix Banking_Application/frontend run preview'" "http-get://localhost:4000 http-get://localhost:5173" "npx playwright test"
+      - name: servers and Playwright tests end
+        run: echo "::endgroup::"
       - name: Upload Playwright HTML report
         uses: actions/upload-artifact@v4
         with:
