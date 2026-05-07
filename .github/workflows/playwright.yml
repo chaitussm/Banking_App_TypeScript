@@ -30,13 +30,7 @@ jobs:
         run: npm ci
         working-directory: Banking_Application/backend
       - name: Run servers and Playwright tests
-        run: >
-          start-server-and-test
-            "concurrently --kill-others --raw \
-              'npm --prefix Banking_Application/backend run dev' \
-              'npm --prefix Banking_Application/frontend run dev'"
-            "http-get://localhost:4000 http-get://localhost:5173"
-            "npx playwright test"
+        run: start-server-and-test "concurrently --kill-others --raw 'npm --prefix Banking_Application/backend run dev' 'npm --prefix Banking_Application/frontend run dev'" "http-get://localhost:4000 http-get://localhost:5173" "npx playwright test"
       - name: Upload Playwright HTML report
         uses: actions/upload-artifact@v4
         with:
