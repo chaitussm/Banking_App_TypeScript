@@ -21,8 +21,8 @@ jobs:
         run: npm ci
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-      - name: Install start-server-and-test
-        run: npm install -g start-server-and-test
+      - name: Install start-server-and-test and concurrently
+        run: npm install -g start-server-and-test concurrently
       - name: Install frontend dependencies
         run: npm ci
         working-directory: Banking_Application/frontend
@@ -32,12 +32,11 @@ jobs:
       - name: Run servers and Playwright tests
         run: >
           start-server-and-test
-            "npm --prefix Banking_Application/backend run dev"
-            http://localhost:4000
-            "start-server-and-test
-              'npm --prefix Banking_Application/frontend run dev'
-              http://localhost:5173
-              'npx playwright test'"
+            "concurrently --kill-others --raw \
+              'npm --prefix Banking_Application/backend run dev' \
+              'npm --prefix Banking_Application/frontend run dev'"
+            "http-get://localhost:4000 http-get://localhost:5173"
+            "npx playwright test"
       - name: Upload Playwright HTML report
         uses: actions/upload-artifact@v4
         with:
