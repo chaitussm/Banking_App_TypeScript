@@ -43,9 +43,18 @@ jobs:
 
       - name: Download migration files from backend repo
         run: |
+          set -e
           mkdir -p db/migrations
-          curl -o db/migrations/001_create_schema.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/db/migrations/001_create_schema.sql
-          curl -o db/migrations/002_seed_initial_data.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/db/migrations/002_seed_initial_data.sql
+          curl -sfL -o db/migrations/001_create_schema.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/db/migrations/001_create_schema.sql
+          curl -sfL -o db/migrations/002_seed_initial_data.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/db/migrations/002_seed_initial_data.sql
+          # Check for HTTP errors or missing files
+          for f in db/migrations/001_create_schema.sql db/migrations/002_seed_initial_data.sql; do
+            if ! grep -q -i 'CREATE\|INSERT\|TABLE' "$f"; then
+              echo "Migration file $f is missing or invalid."
+              cat "$f"
+              exit 1
+            fi
+          done
 
       - name: Set DB_PATH environment variable
         run: echo "DB_PATH=banking.sqlite" >> $GITHUB_ENV
