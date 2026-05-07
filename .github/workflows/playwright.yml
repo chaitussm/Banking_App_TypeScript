@@ -59,7 +59,8 @@ jobs:
           cd backend-build && nohup npm start > ../backend.log 2>&1 &
 
       - name: Wait for backend to be ready
-        run: npx wait-on --timeout=20000 http://localhost:4000
+        run: |
+          npx wait-on --timeout=60000 http://localhost:4000 || (echo "\n===== BACKEND LOG =====" && cat backend.log && exit 1)
 
       - name: Install static server
         run: npm install -g serve
