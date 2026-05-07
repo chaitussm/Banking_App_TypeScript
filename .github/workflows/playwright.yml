@@ -41,6 +41,20 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      - name: Download migration files from backend repo
+        run: |
+          mkdir -p db/migrations
+          curl -o db/migrations/001_create_schema.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/db/migrations/001_create_schema.sql
+          curl -o db/migrations/002_seed_initial_data.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/db/migrations/002_seed_initial_data.sql
+
+      - name: Set DB_PATH environment variable
+        run: echo "DB_PATH=banking.sqlite" >> $GITHUB_ENV
+
+      - name: Initialize and seed SQLite database
+        run: |
+          sqlite3 banking.sqlite < db/migrations/001_create_schema.sql
+          sqlite3 banking.sqlite < db/migrations/002_seed_initial_data.sql
+
       - name: Trigger Banking_Application dev pipeline
         uses: peter-evans/repository-dispatch@v3
         with:
@@ -56,15 +70,6 @@ jobs:
       - name: Fetch backend-build artifact from Banking_Application
         run: |
           node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml backend-build ${{ secrets.BANKING_APP_TOKEN }}
-
-
-      - name: Set DB_PATH environment variable
-        run: echo "DB_PATH=banking.sqlite" >> $GITHUB_ENV
-
-      - name: Initialize and seed SQLite database
-        run: |
-          sqlite3 banking.sqlite < db/migrations/001_create_schema.sql
-          sqlite3 banking.sqlite < db/migrations/002_seed_initial_data.sql
 
       - name: Install backend dependencies
         run: |
