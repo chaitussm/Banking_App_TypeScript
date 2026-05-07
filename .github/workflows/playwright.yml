@@ -12,10 +12,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Install dependencies
+      - name: Install dependencies (test repo)
         run: npm ci
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+      - name: Install wait-on
+        run: npm install -g wait-on
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ../Banking_Application/frontend
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: ../Banking_Application/backend
+      - name: Start backend
+        run: npm run dev &
+        working-directory: ../Banking_Application/backend
+      - name: Start frontend
+        run: npm run dev &
+        working-directory: ../Banking_Application/frontend
+      - name: Wait for servers
+        run: wait-on http://localhost:5173 http://localhost:4000
       - name: Run Playwright tests
         run: npx playwright test
       - name: Upload Playwright HTML report
@@ -33,7 +49,7 @@ jobs:
           subject: Playwright Test Report
           to: chaitanyassm@outlook.com
           from: ${{ secrets.SMTP_USERNAME }}
-          content_type: text/html
+          # content_type: text/html
           body: |
             <p>Playwright test run completed. See the attached HTML report.</p>
           attachments: playwright-report/index.html
