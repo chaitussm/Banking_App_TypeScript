@@ -11,7 +11,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
   test-and-report:
     runs-on: ubuntu-latest
     steps:
@@ -23,13 +22,11 @@ jobs:
         with:
           node-version: '18'
 
-
       - name: Install dependencies
         run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-
 
       - name: Trigger Banking_Application dev pipeline
         uses: peter-evans/repository-dispatch@v3
@@ -43,13 +40,28 @@ jobs:
           npm install node-fetch@2 unzipper
           node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml frontend-build ${{ secrets.BANKING_APP_TOKEN }}
 
+      - name: Fetch backend-build artifact from Banking_Application
+        run: |
+          node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml backend-build ${{ secrets.BANKING_APP_TOKEN }}
+
+      - name: Install backend dependencies
+        run: |
+          cd backend-build && if [ -f package.json ]; then npm ci; fi
+
+      - name: Start backend server
+        run: |
+          cd backend-build && nohup npm start > ../backend.log 2>&1 &
+
+      - name: Wait for backend to be ready
+        run: npx wait-on http://localhost:4000
+
       - name: Install static server
         run: npm install -g serve
 
       - name: Start frontend server
         run: nohup serve -l 5173 frontend-build > serve.log 2>&1 &
 
-      - name: Wait for server to be ready
+      - name: Wait for frontend server to be ready
         run: npx wait-on http://localhost:5173
 
       - name: Run Playwright tests
