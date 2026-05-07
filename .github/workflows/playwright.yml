@@ -1,96 +1,56 @@
-name: Playwright Tests
+
+name: Playwright Pipeline
 
 on:
   push:
-    branches: master
+    branches:
+      - master
+  schedule:
+    # 11:01 PM IST = 5:31 PM UTC
+    - cron: '31 17 * * *'
+  workflow_dispatch:
+
 jobs:
-  test:
+
+  test-and-report:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Checkout Banking_Application repo
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          repository: chaitussm/Banking_Application
-          path: Banking_Application
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: test repo cache
-        run: echo "::group::Test repo cache"
-      - name: Cache test repo dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-testrepo-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-testrepo-
-      - name: test repo cache end
-        run: echo "::endgroup::"
-      - name: test repo install start
-        run: echo "::group::Test repo npm ci"
-      - name: Install dependencies (test repo)
+          node-version: '18'
+
+      - name: Install dependencies
         run: npm ci
-      - name: test repo install end
-        run: echo "::endgroup::"
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-      - name: Install start-server-and-test and concurrently
-        run: npm install -g start-server-and-test concurrently
-      - name: frontend cache start
-        run: echo "::group::Frontend cache"
-      - name: Cache frontend dependencies
-        uses: actions/cache@v4
-        with:
-          path: Banking_Application/frontend/node_modules
-          key: ${{ runner.os }}-frontend-${{ hashFiles('Banking_Application/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-frontend-
-      - name: frontend cache end
-        run: echo "::endgroup::"
-      - name: frontend install start
-        run: echo "::group::Frontend npm ci"
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: Banking_Application/frontend
-      - name: frontend install end
-        run: echo "::endgroup::"
-      - name: backend cache start
-        run: echo "::group::Backend cache"
-      - name: Cache backend dependencies
-        uses: actions/cache@v4
-        with:
-          path: Banking_Application/backend/node_modules
-          key: ${{ runner.os }}-backend-${{ hashFiles('Banking_Application/backend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-backend-
-      - name: backend cache end
-        run: echo "::endgroup::"
-      - name: backend install start
-        run: echo "::group::Backend npm ci"
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: Banking_Application/backend
-      - name: backend install end
-        run: echo "::endgroup::"
-      - name: frontend build start
-        run: echo "::group::Frontend build"
-      # Removed all frontend/backend install, build, and server steps for minimal pipeline
+
       - name: Run Playwright tests
         run: npx playwright test
 
-      - name: Send report via email
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          if-no-files-found: warn
+
+      - name: Send Playwright HTML report via email
+        if: always()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
           server_port: 587
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
-          subject: Playwright Test Report
+          subject: Playwright Test Report - ${{ github.sha }}
           to: chaitanyassm@outlook.com
           from: ${{ secrets.SMTP_USERNAME }}
-          # content_type: text/html
           body: |
             <p>Playwright test run completed. See the attached HTML report.</p>
           attachments: playwright-report/index.html
