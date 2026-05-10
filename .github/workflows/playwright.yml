@@ -36,6 +36,9 @@ jobs:
           key: playwright-browsers-${{ runner.os }}
           restore-keys: |
             playwright-browsers-
+      # --- Final Debug: List all files after move ---
+      - name: List all files in workspace after move
+        run: ls -lR
 
       - name: Show Playwright cache result
         run: |
