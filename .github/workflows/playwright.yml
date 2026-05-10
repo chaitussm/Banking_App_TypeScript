@@ -116,17 +116,14 @@ jobs:
 
       - name: Move extracted frontend build to frontend/dist
         run: |
-          # Find the extracted artifact directory (should be in ./frontend-build or ./frontend-build/dist)
-          if [ -d frontend-build/dist ]; then
-            mkdir -p frontend
-            mv frontend-build/dist frontend/
-            echo "Moved frontend-build/dist to frontend/dist"
-          elif [ -d frontend-build ]; then
-            mkdir -p frontend
-            mv frontend-build frontend/dist
-            echo "Moved frontend-build to frontend/dist"
+          # Move all files from frontend-build/* to frontend/dist
+          if [ -d frontend-build ]; then
+            mkdir -p frontend/dist
+            shopt -s dotglob nullglob
+            mv frontend-build/* frontend/dist/
+            echo "Moved contents of frontend-build to frontend/dist"
           else
-            echo "No frontend build found in expected locations."
+            echo "No frontend-build directory found after extraction."
             ls -l
             exit 1
           fi
