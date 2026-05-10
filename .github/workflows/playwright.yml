@@ -240,7 +240,9 @@ jobs:
 
       # --- Playwright Tests & Reporting ---
       - name: Run Playwright tests
-        run: npx playwright test --browser chromium --no-sandbox
+        run: npx playwright test --browser chromium
+        env:
+          PLAYWRIGHT_CHROMIUM_ARGS: --no-sandbox
 
       - name: Zip all test reports and artifacts
         if: always()
