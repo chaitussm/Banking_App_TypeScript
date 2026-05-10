@@ -146,11 +146,18 @@ jobs:
       - name: Install static server
         run: npm install -g serve
 
+
+      - name: List frontend build directory
+        run: ls -l frontend-build
+
       - name: Start frontend server
         run: nohup serve -l 5173 frontend-build > serve.log 2>&1 &
 
       - name: Wait for frontend server to be ready
-        run: npx wait-on --timeout=60000 http://localhost:5173/login
+        run: npx wait-on --timeout=120000 http://localhost:5173/login
+
+      - name: Print serve log
+        run: cat serve.log || echo 'No serve.log found.'
 
       # --- Cleanup ---
       - name: Kill background servers
