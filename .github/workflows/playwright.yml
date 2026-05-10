@@ -162,7 +162,7 @@ jobs:
 
       - name: Wait for backend to be ready
         run: |
-          npx wait-on --timeout=60000 http://127.0.0.1:4000 || echo "wait-on failed"
+          npx wait-on --timeout=60000 http://localhost:4000 || echo "wait-on failed"
         continue-on-error: true
 
       - name: Print backend log
@@ -194,7 +194,7 @@ jobs:
         run: ps aux | grep node
 
       - name: Test backend health
-        run: curl -v http://127.0.0.1:4000 || true
+        run: curl -v http://localhost:4000 || true
 
       # --- Frontend Setup ---
       - name: Install static server
@@ -217,14 +217,14 @@ jobs:
         run: tail -n 20 serve.log || echo 'No serve.log found.'
 
       - name: Wait for frontend server to be ready
-        run: npx wait-on --timeout=120000 http://127.0.0.1:5173
+        run: npx wait-on --timeout=120000 http://localhost:5173
 
       - name: Wait extra for frontend server
         run: sleep 5
 
       - name: Test frontend server /login
         run: |
-          curl -v http://127.0.0.1:5173/login || curl -v http://127.0.0.1:5173
+          curl -v http://localhost:5173/login || curl -v http://localhost:5173
 
       - name: Check serve process before tests
         run: ps aux | grep serve
@@ -238,10 +238,10 @@ jobs:
         run: cat serve.log || echo 'No serve.log found.'
 
       - name: Curl frontend root before Playwright tests
-        run: curl -v http://127.0.0.1:5173 || echo 'curl to / failed'
+        run: curl -v http://localhost:5173 || echo 'curl to / failed'
 
       - name: Curl frontend /login before Playwright tests
-        run: curl -v http://127.0.0.1:5173/login || echo 'curl to /login failed'
+        run: curl -v http://localhost:5173/login || echo 'curl to /login failed'
 
       # --- Playwright Tests & Reporting ---
 
