@@ -240,7 +240,7 @@ jobs:
 
       # --- Playwright Tests & Reporting ---
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --browser chromium --no-sandbox
 
       - name: Zip all test reports and artifacts
         if: always()
