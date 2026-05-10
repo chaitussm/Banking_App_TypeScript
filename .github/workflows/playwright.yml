@@ -220,7 +220,7 @@ jobs:
         run: npx wait-on --timeout=120000 http://localhost:5173
 
       - name: Wait extra for frontend server
-        run: sleep 5
+        run: sleep 10
 
       - name: Test frontend server /login
         run: |
