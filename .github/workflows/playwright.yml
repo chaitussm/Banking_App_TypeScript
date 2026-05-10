@@ -88,10 +88,14 @@ jobs:
           repository: chaitussm/Banking_Application
           event-type: trigger-dev-pipeline
 
+
       - name: Fetch frontend-build artifact from Banking_Application
         run: |
           npm install node-fetch@2 unzipper
           node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml frontend-build ${{ secrets.BANKING_APP_TOKEN }}
+
+      - name: List files after frontend artifact fetch
+        run: ls -l
 
       - name: Fetch backend-build artifact from Banking_Application
         run: |
