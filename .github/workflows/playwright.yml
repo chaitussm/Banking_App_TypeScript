@@ -229,8 +229,21 @@ jobs:
       - name: Check serve process before tests
         run: ps aux | grep serve
 
-      - name: Print serve log
+
+      # --- Final frontend server checks before Playwright tests ---
+      - name: Check serve process before Playwright tests
+        run: ps aux | grep serve
+
+      - name: Print serve log before Playwright tests
         run: cat serve.log || echo 'No serve.log found.'
+
+      - name: Curl frontend root before Playwright tests
+        run: curl -v http://127.0.0.1:5173 || echo 'curl to / failed'
+
+      - name: Curl frontend /login before Playwright tests
+        run: curl -v http://127.0.0.1:5173/login || echo 'curl to /login failed'
+
+      # --- Playwright Tests & Reporting ---
 
       # --- Cleanup ---
       - name: Kill background servers
