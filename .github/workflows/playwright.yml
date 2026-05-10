@@ -102,6 +102,18 @@ jobs:
       - name: List files after frontend artifact fetch
         run: ls -l
 
+      - name: List contents of extracted frontend-build
+        run: |
+          if [ -d frontend-build ]; then
+            echo "Contents of frontend-build after extraction:"
+            ls -lR frontend-build
+          else
+            echo "No frontend-build directory found after extraction."
+          fi
+
+      - name: List all files in workspace after frontend move
+        run: ls -lR
+
       - name: Move extracted frontend build to frontend/dist
         run: |
           # Find the extracted artifact directory (should be in ./frontend-build or ./frontend-build/dist)
