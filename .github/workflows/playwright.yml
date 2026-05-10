@@ -15,6 +15,9 @@ jobs:
     steps:
 
       # --- Dependency Installation ---
+      - name: List files in workspace
+        run: ls -l
+
       - name: Install dependencies
         run: npm ci
 
