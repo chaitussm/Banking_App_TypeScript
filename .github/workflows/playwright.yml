@@ -14,7 +14,14 @@ jobs:
     timeout-minutes: 60  # Fail the job if it runs longer than 1 hour
     steps:
 
+      # --- Source Checkout & Node Setup ---
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       # --- Dependency Installation ---
+      - name: Print working directory
+        run: pwd
+
       - name: List files in workspace
         run: ls -l
 
