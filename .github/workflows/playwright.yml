@@ -15,9 +15,6 @@ jobs:
     steps:
 
       # --- Dependency Installation ---
-      - name: Upgrade npm to latest
-        run: npm install -g npm@latest
-
       - name: Install dependencies
         run: npm ci
 
