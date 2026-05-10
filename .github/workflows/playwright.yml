@@ -102,6 +102,15 @@ jobs:
       - name: List files after frontend artifact fetch
         run: ls -l
 
+      - name: List contents of frontend-build after extraction
+        run: |
+          if [ -d frontend-build ]; then
+            echo "Contents of frontend-build after extraction:"
+            ls -lR frontend-build
+          else
+            echo "No frontend-build directory found after extraction."
+          fi
+
       - name: List contents of extracted frontend-build
         run: |
           if [ -d frontend-build ]; then
@@ -122,6 +131,8 @@ jobs:
             shopt -s dotglob nullglob
             mv frontend-build/* frontend/dist/
             echo "Moved contents of frontend-build to frontend/dist"
+            echo "Contents of frontend/dist after move:"
+            ls -lR frontend/dist
           else
             echo "No frontend-build directory found after extraction."
             ls -l
