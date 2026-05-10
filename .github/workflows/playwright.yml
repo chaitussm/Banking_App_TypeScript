@@ -87,6 +87,7 @@ jobs:
           repository: chaitussm/Banking_Application
           event-type: trigger-dev-pipeline
 
+
       - name: Fetch frontend-build artifact from Banking_Application
         run: |
           npm install node-fetch@2 unzipper
@@ -98,12 +99,12 @@ jobs:
       - name: List files after frontend artifact fetch
         run: ls -l
 
-      - name: List contents of frontend-build recursively
+      - name: List contents of frontend/dist recursively
         run: |
-          if [ -d frontend-build ]; then
-            ls -lR frontend-build
+          if [ -d frontend/dist ]; then
+            ls -lR frontend/dist
           else
-            echo 'frontend-build directory does not exist.'
+            echo 'frontend/dist directory does not exist.'
           fi
 
       - name: Fetch backend-build artifact from Banking_Application
@@ -159,11 +160,12 @@ jobs:
       - name: Install static server
         run: npm install -g serve
 
+
       - name: List frontend build directory
-        run: ls -l frontend-build
+        run: ls -l frontend/dist
 
       - name: Start frontend server
-        run: nohup serve -l 5173 frontend-build > serve.log 2>&1 &
+        run: nohup serve -l 5173 frontend/dist > serve.log 2>&1 &
 
       - name: Wait for frontend server to be ready
         run: npx wait-on --timeout=120000 http://localhost:5173/login
