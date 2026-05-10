@@ -243,6 +243,32 @@ jobs:
       - name: Curl frontend /login before Playwright tests
         run: curl -v http://localhost:5173/login || echo 'curl to /login failed'
 
+      # --- Extra: Retry curl to frontend before Playwright tests ---
+      - name: Ensure frontend server is up before Playwright tests
+        run: |
+          echo "Retrying curl to http://localhost:5173 and /login up to 10 times..."
+          for i in {1..10}; do
+            echo "Attempt $i: curl /"
+            curl -v http://localhost:5173 && echo "Frontend root is up!" && break
+            sleep 2
+          done
+          for i in {1..10}; do
+            echo "Attempt $i: curl /login"
+            curl -v http://localhost:5173/login && echo "/login is up!" && break
+            sleep 2
+          done
+          # Final check, fail if not up
+          if ! curl -s http://localhost:5173 > /dev/null; then
+            echo "Frontend server is NOT up after retries! Printing serve.log:"
+            cat serve.log || echo 'No serve.log found.'
+            exit 1
+          fi
+          if ! curl -s http://localhost:5173/login > /dev/null; then
+            echo "/login is NOT up after retries! Printing serve.log:"
+            cat serve.log || echo 'No serve.log found.'
+            exit 1
+          fi
+
       # --- Playwright Tests & Reporting ---
 
       # --- Cleanup ---
