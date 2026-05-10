@@ -217,7 +217,7 @@ jobs:
         run: tail -n 20 serve.log || echo 'No serve.log found.'
 
       - name: Wait for frontend server to be ready
-        run: npx wait-on --timeout=120000 http://localhost:5173/login
+        run: npx wait-on --timeout=120000 http://localhost:5173
 
       - name: Print serve log
         run: cat serve.log || echo 'No serve.log found.'
