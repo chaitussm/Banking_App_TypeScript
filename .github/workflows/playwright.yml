@@ -1,3 +1,4 @@
+
 name: Playwright Pipeline
 on:
   push:
@@ -12,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60  # Fail the job if it runs longer than 1 hour
     steps:
-
       # --- Source Checkout & Node Setup ---
       - name: Checkout repository
         uses: actions/checkout@v4
