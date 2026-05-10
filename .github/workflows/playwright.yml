@@ -208,13 +208,16 @@ jobs:
         run: ls -l frontend/dist
 
       - name: Start frontend server
-        run: nohup serve -l 5173 frontend/dist --single > serve.log 2>&1 &
+        run: nohup serve -l 0.0.0.0:5173 frontend/dist --single > serve.log 2>&1 &
 
       - name: Check serve process
         run: ps aux | grep serve
 
       - name: Print serve log after start
         run: tail -n 20 serve.log || echo 'No serve.log found.'
+
+      - name: Print full serve log after start
+        run: cat serve.log || echo 'No serve.log found.'
 
       - name: Wait for frontend server to be ready
         run: npx wait-on --timeout=120000 http://localhost:5173
@@ -236,6 +239,9 @@ jobs:
 
       - name: Print serve log before Playwright tests
         run: cat serve.log || echo 'No serve.log found.'
+
+      - name: Print last 20 lines of serve log before Playwright tests
+        run: tail -n 20 serve.log || echo 'No serve.log found.'
 
       - name: Curl frontend root before Playwright tests
         run: curl -v http://localhost:5173 || echo 'curl to / failed'
