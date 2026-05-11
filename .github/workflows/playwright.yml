@@ -28,14 +28,21 @@ jobs:
         run: npm ci
 
       # --- Playwright Browser Caching ---
+      - name: Get Playwright version
+        id: get-playwright-version
+        run: echo "version=$(npx --no-install playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
+
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}
+          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ env.PLAYWRIGHT_VERSION }}
           restore-keys: |
+            playwright-browsers-${{ runner.os }}-
             playwright-browsers-
+        env:
+          PLAYWRIGHT_VERSION: ${{ steps.get-playwright-version.outputs.version }}
       # --- Final Debug: List all files after move ---
       - name: List all files in workspace after move
         run: ls -lR
