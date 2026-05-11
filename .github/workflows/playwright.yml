@@ -101,8 +101,23 @@ jobs:
         run: npm install -g serve
 
 
+
+      - name: List frontend/dist before starting server
+        run: |
+          echo "Contents of frontend/dist before starting server:"
+          ls -l frontend/dist || echo 'frontend/dist not found.'
+          if [ -d frontend/dist ]; then
+            ls -lR frontend/dist
+          fi
+
       - name: Start frontend server
         run: nohup serve -l 0.0.0.0:5173 frontend/dist --single > serve.log 2>&1 &
+
+      - name: Print serve log after frontend start
+        run: cat serve.log || echo 'No serve.log found.'
+
+      - name: List open ports after frontend start
+        run: sudo netstat -tuln || sudo lsof -i -P -n
 
       - name: Print serve log after frontend start
         run: cat serve.log || echo 'No serve.log found.'
