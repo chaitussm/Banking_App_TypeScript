@@ -73,9 +73,19 @@ jobs:
         run: |
           cd backend-build && npm ci --prefer-offline --no-audit --progress=false
 
+
       - name: Start backend server
         run: |
           cd backend-build && nohup npm start > ../backend.log 2>&1 &
+
+      - name: Print backend log after backend start
+        run: cat backend.log || echo 'No backend.log found.'
+
+      - name: List node processes after backend start
+        run: ps aux | grep node
+
+      - name: List open ports after backend start
+        run: sudo netstat -tuln || sudo lsof -i -P -n
 
 
       - name: Wait for backend to be ready
