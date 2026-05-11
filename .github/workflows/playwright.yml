@@ -32,15 +32,15 @@ jobs:
         id: get-playwright-version
         run: echo "version=$(npx --no-install playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
 
-      - name: Cache Playwright browsers
+      - name: Cache Playwright Chromium browser
         id: playwright-cache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ env.PLAYWRIGHT_VERSION }}
+          path: ~/.cache/ms-playwright/chromium
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ env.PLAYWRIGHT_VERSION }}
           restore-keys: |
-            playwright-browsers-${{ runner.os }}-
-            playwright-browsers-
+            playwright-chromium-${{ runner.os }}-
+            playwright-chromium-
         env:
           PLAYWRIGHT_VERSION: ${{ steps.get-playwright-version.outputs.version }}
       # --- Final Debug: List all files after move ---
@@ -54,9 +54,9 @@ jobs:
           du -sh ~/.cache/ms-playwright || echo 'No Playwright browser cache found.'
           echo "If cache hit is false, browser install will be slow."
 
-      - name: Install Playwright Browsers (if cache miss)
+      - name: Install Playwright Chromium (if cache miss)
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium --with-deps
 
       # --- Database Migration & Seeding ---
       - name: Download migration files from backend repo
