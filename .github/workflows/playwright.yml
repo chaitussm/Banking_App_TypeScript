@@ -1,33 +1,26 @@
-
 name: Playwright Pipeline
 on:
   push:
     branches:
       - master
-  schedule:
-    - cron: '31 17 * * *'
   workflow_dispatch:
 
 jobs:
   test-and-report:
     runs-on: ubuntu-latest
-    timeout-minutes: 60  # Fail the job if it runs longer than 1 hour
+    timeout-minutes: 60
     steps:
-      # --- Source Checkout & Node Setup ---
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --- Dependency Installation ---
-      - name: Print working directory
-        run: pwd
-
-      - name: List files in workspace
-        run: ls -l
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - name: Install dependencies
         run: npm ci
 
-      # --- Playwright Browser Caching ---
       - name: Get Playwright version
         id: get-playwright-version
         run: echo "version=$(npx --no-install playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
@@ -37,49 +30,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright/chromium
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ env.PLAYWRIGHT_VERSION }}
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ steps.get-playwright-version.outputs.version }}
           restore-keys: |
             playwright-chromium-${{ runner.os }}-
             playwright-chromium-
-        env:
-          PLAYWRIGHT_VERSION: ${{ steps.get-playwright-version.outputs.version }}
-      # --- Final Debug: List all files after move ---
-      - name: List all files in workspace after move
-        run: ls -lR
-
-      - name: Show Playwright cache result
-        run: |
-          echo "Cache hit: ${{ steps.playwright-cache.outputs.cache-hit }}"
-          ls -lh ~/.cache/ms-playwright || echo 'No Playwright browser cache found.'
-          du -sh ~/.cache/ms-playwright || echo 'No Playwright browser cache found.'
-          echo "If cache hit is false, browser install will be slow."
 
       - name: Install Playwright Chromium (if cache miss)
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install chromium --with-deps
 
-      # --- Database Migration & Seeding ---
       - name: Download migration files from backend repo
         run: |
           set -e
           mkdir -p db/migrations
-          echo "Downloading 001_create_schema.sql..."
-          curl -w '%{http_code}\n' -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/001_create_schema.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/001_create_schema.sql || {
-            echo "curl failed for 001_create_schema.sql with exit code $?";
-            exit 1;
-          }
-          echo "Downloading 002_seed_initial_data.sql..."
-          curl -w '%{http_code}\n' -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/002_seed_initial_data.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/002_seed_initial_data.sql || {
-            echo "curl failed for 002_seed_initial_data.sql with exit code $?";
-            exit 1;
-          }
-          for f in db/migrations/001_create_schema.sql db/migrations/002_seed_initial_data.sql; do
-            if ! grep -q -i 'CREATE\|INSERT\|TABLE' "$f"; then
-              echo "Migration file $f is missing or invalid."
-              cat "$f"
-              exit 1
-            fi
-          done
+          curl -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/001_create_schema.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/001_create_schema.sql
+          curl -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/002_seed_initial_data.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/002_seed_initial_data.sql
 
       - name: Set DB_PATH environment variable
         run: echo "DB_PATH=banking.sqlite" >> $GITHUB_ENV
@@ -89,219 +54,41 @@ jobs:
           sqlite3 banking.sqlite < db/migrations/001_create_schema.sql
           sqlite3 banking.sqlite < db/migrations/002_seed_initial_data.sql
 
-      # --- Artifact Fetching ---
-      - name: Trigger Banking_Application dev pipeline
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.BANKING_APP_TOKEN }}
-          repository: chaitussm/Banking_Application
-          event-type: trigger-dev-pipeline
-
-
       - name: Fetch frontend-build artifact from Banking_Application
         run: |
           npm install node-fetch@2 unzipper
-          node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml frontend-build ${{ secrets.BANKING_APP_TOKEN }} | tee fetch-frontend-artifact.log
-
-      - name: Print frontend artifact fetch log
-        run: cat fetch-frontend-artifact.log || echo 'No fetch-frontend-artifact.log found.'
-
-      - name: List files after frontend artifact fetch
-        run: ls -l
-
-      - name: List contents of frontend-build after extraction
-        run: |
-          if [ -d frontend-build ]; then
-            echo "Contents of frontend-build after extraction:"
-            ls -lR frontend-build
-          else
-            echo "No frontend-build directory found after extraction."
-          fi
-
-      - name: List contents of extracted frontend-build
-        run: |
-          if [ -d frontend-build ]; then
-            echo "Contents of frontend-build after extraction:"
-            ls -lR frontend-build
-          else
-            echo "No frontend-build directory found after extraction."
-          fi
-
-      - name: List all files in workspace after frontend move
-        run: ls -lR
+          node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml frontend-build ${{ secrets.BANKING_APP_TOKEN }}
 
       - name: Move extracted frontend build to frontend/dist
         run: |
-          # Move all files from frontend-build/* to frontend/dist
-          if [ -d frontend-build ]; then
-            mkdir -p frontend/dist
-            shopt -s dotglob nullglob
-            mv frontend-build/* frontend/dist/
-            echo "Moved contents of frontend-build to frontend/dist"
-            echo "Contents of frontend/dist after move:"
-            ls -lR frontend/dist
-          else
-            echo "No frontend-build directory found after extraction."
-            ls -l
-            exit 1
-          fi
-
-      - name: List frontend/dist after move
-        run: |
-          echo "Contents of frontend/dist:"
-          ls -l frontend/dist
-          if [ -d frontend/dist/assets ]; then
-            echo "Contents of frontend/dist/assets:"
-            ls -l frontend/dist/assets
-          else
-            echo "No assets directory found in frontend/dist."
-          fi
-
-      - name: List contents of frontend/dist recursively
-        run: |
-          if [ -d frontend/dist ]; then
-            ls -lR frontend/dist
-          else
-            echo 'frontend/dist directory does not exist.'
-          fi
+          mkdir -p frontend/dist
+          shopt -s dotglob nullglob
+          mv frontend-build/* frontend/dist/
 
       - name: Fetch backend-build artifact from Banking_Application
         run: |
           node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml backend-build ${{ secrets.BANKING_APP_TOKEN }}
 
-      # --- Backend Setup ---
       - name: Install backend dependencies
         run: |
-          cd backend-build && if [ -f package.json ]; then npm ci --prefer-offline --no-audit --progress=false; fi
+          cd backend-build && npm ci --prefer-offline --no-audit --progress=false
 
       - name: Start backend server
         run: |
           cd backend-build && nohup npm start > ../backend.log 2>&1 &
 
       - name: Wait for backend to be ready
-        run: |
-          npx wait-on --timeout=60000 http://localhost:4000 || echo "wait-on failed"
-        continue-on-error: true
+        run: npx wait-on --timeout=60000 http://localhost:4000
 
-      - name: Print backend log
-        run: |
-          echo "\n===== FULL BACKEND LOG ====="
-          cat backend.log || echo 'No backend.log found.'
-
-      - name: Print last 100 lines of backend log
-        run: |
-          echo "\n===== LAST 100 LINES OF BACKEND LOG ====="
-          tail -n 100 backend.log || echo 'No backend.log found.'
-
-      # --- Environment & Backend Health Checks ---
-      - name: Print environment variables
-        run: |
-          echo "\n===== ENVIRONMENT VARIABLES ====="
-          printenv | sort
-
-      - name: Fail if backend process not running
-        run: |
-          if ! ps aux | grep -v grep | grep -q "node src/server.js"; then
-            echo "Backend process is not running!"
-            exit 1
-          else
-            echo "Backend process is running."
-          fi
-
-      - name: List node processes
-        run: ps aux | grep node
-
-      - name: Test backend health
-        run: curl -v http://localhost:4000 || true
-
-      # --- Frontend Setup ---
       - name: Install static server
         run: npm install -g serve
-
-      - name: Check serve version
-        run: serve --version
-
-
-      - name: List frontend build directory
-        run: ls -l frontend/dist
 
       - name: Start frontend server
         run: nohup serve -l 0.0.0.0:5173 frontend/dist --single > serve.log 2>&1 &
 
-      - name: Check serve process
-        run: ps aux | grep serve
-
-      - name: Print serve log after start
-        run: tail -n 20 serve.log || echo 'No serve.log found.'
-
-      - name: Print full serve log after start
-        run: cat serve.log || echo 'No serve.log found.'
-
       - name: Wait for frontend server to be ready
         run: npx wait-on --timeout=120000 http://localhost:5173
 
-      - name: Wait extra for frontend server
-        run: sleep 10
-
-      - name: Test frontend server /login
-        run: |
-          curl -v http://localhost:5173/login || curl -v http://localhost:5173
-
-      - name: Check serve process before tests
-        run: ps aux | grep serve
-
-
-      # --- Final frontend server checks before Playwright tests ---
-      - name: Check serve process before Playwright tests
-        run: ps aux | grep serve
-
-      - name: Print serve log before Playwright tests
-        run: cat serve.log || echo 'No serve.log found.'
-
-      - name: Print last 20 lines of serve log before Playwright tests
-        run: tail -n 20 serve.log || echo 'No serve.log found.'
-
-      - name: Curl frontend root before Playwright tests
-        run: curl -v http://localhost:5173 || echo 'curl to / failed'
-
-      - name: Curl frontend /login before Playwright tests
-        run: curl -v http://localhost:5173/login || echo 'curl to /login failed'
-
-      # --- Extra: Retry curl to frontend before Playwright tests ---
-      - name: Ensure frontend server is up before Playwright tests
-        run: |
-          echo "Retrying curl to http://localhost:5173 and /login up to 10 times..."
-          for i in {1..10}; do
-            echo "Attempt $i: curl /"
-            curl -v http://localhost:5173 && echo "Frontend root is up!" && break
-            sleep 2
-          done
-          for i in {1..10}; do
-            echo "Attempt $i: curl /login"
-            curl -v http://localhost:5173/login && echo "/login is up!" && break
-            sleep 2
-          done
-          # Final check, fail if not up
-          if ! curl -s http://localhost:5173 > /dev/null; then
-            echo "Frontend server is NOT up after retries! Printing serve.log:"
-            cat serve.log || echo 'No serve.log found.'
-            exit 1
-          fi
-          if ! curl -s http://localhost:5173/login > /dev/null; then
-            echo "/login is NOT up after retries! Printing serve.log:"
-            cat serve.log || echo 'No serve.log found.'
-            exit 1
-          fi
-
-      # --- Playwright Tests & Reporting ---
-
-      # --- Cleanup ---
-      - name: Kill background servers
-        if: always()
-        run: |
-          pkill -f 'node|serve' || true
-
-      # --- Playwright Tests & Reporting ---
       - name: Run Playwright tests
         run: npx playwright test
         env:
