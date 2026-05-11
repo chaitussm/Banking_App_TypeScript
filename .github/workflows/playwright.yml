@@ -110,20 +110,14 @@ jobs:
             ls -lR frontend/dist
           fi
 
-      - name: Start frontend server
-        run: nohup serve -l 0.0.0.0:5173 frontend/dist --single > serve.log 2>&1 &
 
-      - name: Print serve log after frontend start
-        run: cat serve.log || echo 'No serve.log found.'
+      - name: Check serve version
+        run: serve --version
 
-      - name: List open ports after frontend start
-        run: sudo netstat -tuln || sudo lsof -i -P -n
+      - name: Start frontend server (foreground for debug)
+        run: serve -l 0.0.0.0:5173 frontend/dist --single
+        continue-on-error: true
 
-      - name: Print serve log after frontend start
-        run: cat serve.log || echo 'No serve.log found.'
-
-      - name: Wait for frontend server to be ready
-        run: npx wait-on --timeout=120000 http://localhost:5173
 
       - name: Run Playwright tests
         run: npx playwright test
