@@ -115,7 +115,7 @@ jobs:
         run: serve --version
 
       - name: Start frontend server (foreground for debug)
-        run: serve -l 0.0.0.0:5173 frontend/dist --single
+        run: serve -l 5173 frontend/dist --single
         continue-on-error: true
 
 
