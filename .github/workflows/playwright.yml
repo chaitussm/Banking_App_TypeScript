@@ -89,7 +89,7 @@ jobs:
 
 
       - name: Wait for backend to be ready
-        run: npx wait-on --timeout=120000 http://localhost:4000
+        run: npx wait-on --timeout=120000 http://localhost:4000/health
 
       - name: Print backend log after wait-on
         run: cat backend.log || echo 'No backend.log found.'
