@@ -54,17 +54,6 @@ jobs:
           sqlite3 banking.sqlite < db/migrations/001_create_schema.sql
           sqlite3 banking.sqlite < db/migrations/002_seed_initial_data.sql
 
-      - name: Build frontend
-        run: npm run build
-
-      - name: Install static server
-        run: npm install -g serve
-
-      - name: Start frontend server
-        run: nohup serve -l 5174 frontend/dist --single > serve.log 2>&1 &
-
-      - name: Wait for frontend server to be ready
-        run: npx wait-on --timeout=120000 http://localhost:5174
 
       - name: Run Playwright tests
         run: npx playwright test
