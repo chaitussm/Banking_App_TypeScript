@@ -15,4 +15,5 @@ test.describe('Transfers Page', () => {
     await transfersPage.goto();
     await transfersPage.isTransfersHeadingVisible();
   });
+
 });

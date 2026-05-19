@@ -16,4 +16,5 @@ test.describe('Users Page (Manager Access)', () => {
     await usersPage.isUsersHeadingVisible();
     await usersPage.isUserEmailVisible('ava.smith@novabank.com');
   });
+
 });

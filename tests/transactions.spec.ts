@@ -15,4 +15,5 @@ test.describe('Transactions Page', () => {
     await transactionsPage.goto();
     await transactionsPage.isTransactionsHeadingVisible();
   });
+
 });

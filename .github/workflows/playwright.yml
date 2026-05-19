@@ -54,91 +54,17 @@ jobs:
           sqlite3 banking.sqlite < db/migrations/001_create_schema.sql
           sqlite3 banking.sqlite < db/migrations/002_seed_initial_data.sql
 
-
-
-      - name: Move extracted frontend build to frontend/dist
-        run: |
-          mkdir -p frontend/dist
-          shopt -s dotglob nullglob
-          if [ -d frontend-build ] && [ "$(ls -A frontend-build)" ]; then
-            mv frontend-build/* frontend/dist/
-          else
-            echo "frontend-build is missing or empty, skipping move."
-          fi
-
-
-
-      - name: Install backend dependencies
-        run: |
-          if [ -d backend-build ]; then
-            cd backend-build && npm ci --prefer-offline --no-audit --progress=false
-          else
-            echo "backend-build directory not found, skipping backend dependency install."
-          fi
-
-
-      - name: Start backend server
-        run: |
-          if [ -d backend-build ]; then
-            cd backend-build && nohup npm start > ../backend.log 2>&1 &
-          else
-            echo "backend-build directory not found, skipping backend server start."
-          fi
-
-      - name: Print backend log after backend start
-        run: cat backend.log || echo 'No backend.log found.'
-
-      - name: List node processes after backend start
-        run: ps aux | grep node
-
-      - name: List open ports after backend start
-        run: sudo netstat -tuln || sudo lsof -i -P -n
-
-
-      - name: Wait for backend to be ready
-        run: |
-          if [ -d backend-build ]; then
-            npx wait-on --timeout=120000 http://localhost:4000/health
-          else
-            echo "backend-build directory not found, skipping backend wait-on."
-          fi
-
-      - name: Print backend log after wait-on
-        run: cat backend.log || echo 'No backend.log found.'
-
-      - name: List node processes after backend start
-        run: ps aux | grep node
+      - name: Build frontend
+        run: npm run build
 
       - name: Install static server
         run: npm install -g serve
 
-
-
-      - name: List frontend/dist before starting server
-        run: |
-          echo "Contents of frontend/dist before starting server:"
-          ls -l frontend/dist || echo 'frontend/dist not found.'
-          if [ -d frontend/dist ]; then
-            ls -lR frontend/dist
-          fi
-
-
-      - name: Check serve version
-        run: serve --version
-
       - name: Start frontend server
         run: nohup serve -l 5174 frontend/dist --single > serve.log 2>&1 &
 
-      - name: Print serve log after frontend start
-        run: cat serve.log || echo 'No serve.log found.'
-
-      - name: List open ports after frontend start
-        run: sudo netstat -tuln || sudo lsof -i -P -n
-
       - name: Wait for frontend server to be ready
-              # All backend/frontend build, server, and wait-on steps removed for speed and reliability
         run: npx wait-on --timeout=120000 http://localhost:5174
-
 
       - name: Run Playwright tests
         run: npx playwright test
