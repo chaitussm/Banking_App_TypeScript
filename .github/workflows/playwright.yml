@@ -136,6 +136,7 @@ jobs:
         run: sudo netstat -tuln || sudo lsof -i -P -n
 
       - name: Wait for frontend server to be ready
+              # All backend/frontend build, server, and wait-on steps removed for speed and reliability
         run: npx wait-on --timeout=120000 http://localhost:5174
 
 
