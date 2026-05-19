@@ -4,7 +4,7 @@ export class LoginPage {
   constructor(private page: Page) {}
 
   async goto() {
-    await this.page.goto('http://localhost:5173/login');
+    await this.page.goto('http://localhost:5174/login');
   }
 
   async login(email: string, password: string) {

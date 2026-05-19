@@ -4,7 +4,7 @@ export class TransfersPage {
   constructor(private page: Page) {}
 
   async goto() {
-    await this.page.goto('http://localhost:5173/transfers');
+    await this.page.goto('http://localhost:5174/transfers');
   }
 
   async isTransfersHeadingVisible() {

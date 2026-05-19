@@ -20,7 +20,7 @@ The tests are based on the known Banking_Application routes and seeded credentia
 ## Prerequisites
 
 - Node.js 18+
-- Banking_Application frontend running at http://localhost:5173
+- Banking_Application frontend running at http://localhost:5174
 - Banking_Application backend running at http://localhost:4000
 
 ## Setup

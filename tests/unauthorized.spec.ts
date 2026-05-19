@@ -11,7 +11,7 @@ test.describe('Unauthorized Page', () => {
   });
 
   test('unauthorized page loads when accessing restricted page', async ({ page }) => {
-    await page.goto('http://localhost:5173/users');
+    await page.goto('http://localhost:5174/users');
     await expect(page).toHaveURL(/\/unauthorized$/);
     const unauthorizedPage = new UnauthorizedPage(page);
     await unauthorizedPage.isUnauthorizedHeadingVisible();

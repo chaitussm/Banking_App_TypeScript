@@ -4,7 +4,7 @@ export class DashboardPage {
   constructor(private page: Page) {}
 
   async goto() {
-    await this.page.goto('http://localhost:5173/dashboard');
+    await this.page.goto('http://localhost:5174/dashboard');
   }
 
   async isWelcomeVisible() {
