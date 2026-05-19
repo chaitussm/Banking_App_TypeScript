@@ -60,7 +60,11 @@ jobs:
         run: |
           mkdir -p frontend/dist
           shopt -s dotglob nullglob
-          mv frontend-build/* frontend/dist/
+          if [ -d frontend-build ] && [ "$(ls -A frontend-build)" ]; then
+            mv frontend-build/* frontend/dist/
+          else
+            echo "frontend-build is missing or empty, skipping move."
+          fi
 
 
 
