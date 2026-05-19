@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { login } from './helpers/session';
+import { apiLogin } from './helpers/apiSession';
 
 const customerEmail = process.env.BANK_CUSTOMER_EMAIL || 'ava.smith@novabank.com';
 const customerPassword = process.env.BANK_CUSTOMER_PASSWORD || 'ava@123';
 
 test.describe('Core banking flows', () => {
   test.beforeEach(async ({ page }) => {
-    await login(page, customerEmail, customerPassword);
+    await apiLogin(page, customerEmail, customerPassword);
   });
 
   test('accounts page shows seeded account id', async ({ page }) => {
