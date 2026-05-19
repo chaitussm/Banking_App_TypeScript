@@ -128,8 +128,8 @@ jobs:
         if: always()
         run: |
           mkdir -p test-reports
-          cp -r playwright-report test-reports/
-          cp -r test-results test-reports/ || true
+          [ -d playwright-report ] && cp -r playwright-report test-reports/
+          [ -d test-results ] && cp -r test-results test-reports/
           zip -r test-reports.zip test-reports
 
       - name: Upload all test reports and screenshots
