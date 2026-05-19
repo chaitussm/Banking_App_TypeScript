@@ -46,6 +46,9 @@ jobs:
       - name: Install Playwright dependencies
         run: npm ci
 
+      - name: Run custom test runner script
+        run: node scripts/test-runner.js
+
       - name: Run Playwright tests
         run: npx playwright test
 
