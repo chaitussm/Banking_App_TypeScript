@@ -1,92 +1,58 @@
-name: Playwright Pipeline
+name: Playwright E2E Tests
+
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
 
 jobs:
-  test-and-report:
+  e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
         with:
-          node-version: 20
+          name: frontend-build
+          path: frontend/dist
 
-      - name: Install dependencies
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-build
+          path: backend
+
+      - name: Install backend dependencies
+        working-directory: backend
         run: npm ci
 
-      - name: Get Playwright version
-        id: get-playwright-version
-        run: echo "version=$(npx --no-install playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
+      - name: Start backend server
+        working-directory: backend
+        run: nohup node src/server.js &
 
-      - name: Cache Playwright Chromium browser
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright/chromium
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ steps.get-playwright-version.outputs.version }}
-          restore-keys: |
-            playwright-chromium-${{ runner.os }}-
-            playwright-chromium-
+      - name: Serve frontend
+        run: npx serve -l 5174 frontend/dist &
 
-      - name: Install Playwright Chromium (if cache miss)
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install chromium --with-deps
-
-      - name: Download migration files from backend repo
+      - name: Wait for servers
         run: |
-          set -e
-          mkdir -p db/migrations
-          curl -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/001_create_schema.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/001_create_schema.sql
-          curl -L -H "Authorization: token ${{ secrets.BANKING_APP_TOKEN }}" -o db/migrations/002_seed_initial_data.sql https://raw.githubusercontent.com/chaitussm/Banking_Application/master/backend/db/migrations/002_seed_initial_data.sql
+          npx wait-on http://localhost:5174/login
+          npx wait-on http://localhost:3000/api/health || true
 
-      - name: Set DB_PATH environment variable
-        run: echo "DB_PATH=banking.sqlite" >> $GITHUB_ENV
-
-      - name: Initialize and seed SQLite database
-        run: |
-          sqlite3 banking.sqlite < db/migrations/001_create_schema.sql
-          sqlite3 banking.sqlite < db/migrations/002_seed_initial_data.sql
-
+      - name: Install Playwright dependencies
+        run: npm ci
 
       - name: Run Playwright tests
         run: npx playwright test
-        env:
-          PLAYWRIGHT_CHROMIUM_ARGS: --no-sandbox
 
-      - name: Zip all test reports and artifacts
-        if: always()
-        run: |
-          mkdir -p test-reports
-          [ -d playwright-report ] && cp -r playwright-report test-reports/
-          [ -d test-results ] && cp -r test-results test-reports/
-          zip -r test-reports.zip test-reports
-
-      - name: Upload all test reports and screenshots
+      - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: all-test-reports
-          path: test-reports.zip
-          if-no-files-found: warn
-
-      - name: Send Playwright HTML report via email
-        if: always()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: 587
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
-          subject: Playwright Test Report - ${{ github.sha }}
-          to: chaitanyassm@outlook.com
-          from: ${{ secrets.SMTP_USERNAME }}
-          body: |
-            <p>Playwright test run completed. See the attached HTML report.</p>
-          attachments: playwright-report/index.html
+          name: playwright-report
+          path: playwright-report
+          if-no-files-found: ignore
