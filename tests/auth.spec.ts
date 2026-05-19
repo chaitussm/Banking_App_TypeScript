@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { apiLogin } from './helpers/apiSession';
+import { login } from './helpers/session';
 import { logout } from './helpers/session';
 
 const customerEmail = process.env.BANK_CUSTOMER_EMAIL || 'ava.smith@novabank.com';
@@ -9,7 +9,7 @@ const managerPassword = process.env.BANK_MANAGER_PASSWORD || 'mia@123';
 
 test.describe('Authentication and role routing', () => {
   test('customer can login and cannot access users page', async ({ page }) => {
-    await apiLogin(page, customerEmail, customerPassword);
+    await login(page, customerEmail, customerPassword);
     await expect(page.getByRole('heading', { name: /novabank banking application/i })).toBeVisible();
 
     await page.goto('/users');
@@ -20,7 +20,7 @@ test.describe('Authentication and role routing', () => {
   });
 
   test('manager can access users page', async ({ page }) => {
-    await apiLogin(page, managerEmail, managerPassword);
+    await login(page, managerEmail, managerPassword);
     await page.goto('/users');
 
     await expect(page).toHaveURL(/\/users$/);

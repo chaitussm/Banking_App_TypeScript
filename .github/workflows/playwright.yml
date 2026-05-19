@@ -54,10 +54,7 @@ jobs:
           sqlite3 banking.sqlite < db/migrations/001_create_schema.sql
           sqlite3 banking.sqlite < db/migrations/002_seed_initial_data.sql
 
-      - name: Fetch frontend-build artifact from Banking_Application
-        run: |
-          npm install node-fetch@2 unzipper
-          node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml frontend-build ${{ secrets.BANKING_APP_TOKEN }}
+
 
       - name: Move extracted frontend build to frontend/dist
         run: |
@@ -65,9 +62,7 @@ jobs:
           shopt -s dotglob nullglob
           mv frontend-build/* frontend/dist/
 
-      - name: Fetch backend-build artifact from Banking_Application
-        run: |
-          node scripts/fetch-artifact.js chaitussm Banking_Application dev-pipeline.yml backend-build ${{ secrets.BANKING_APP_TOKEN }}
+
 
       - name: Install backend dependencies
         run: |
