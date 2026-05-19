@@ -5,7 +5,7 @@
 const fs = require('fs');
 const fetch = require('node-fetch');
 
-const GITHUB_TOKEN = process.env.DEV_TOKEN; // Set this in your environment for authentication
+const GITHUB_TOKEN = process.env.DEV_TOKEN || process.env.GITHUB_TOKEN; // Prefer DEV_TOKEN, fallback to GITHUB_TOKEN
 const REPO = 'chaitussm/Banking_Application';
 const WORKFLOW_NAME = 'Dev Pipeline'; // Adjust if your workflow name is different
 const ENV_FILE = '.env.local';
@@ -49,9 +49,14 @@ function extractUrlsFromLogs(logBuffer) {
 }
 
 function updateEnvFile(urls) {
-  let env = fs.existsSync(ENV_FILE) ? fs.readFileSync(ENV_FILE, 'utf8') : '';
-  env = env.replace(/BASE_URL=.*/g, `BASE_URL=${urls.frontend}`);
-  env = env.replace(/API_URL=.*/g, `API_URL=${urls.backend}`);
+  let env = '';
+  if (fs.existsSync(ENV_FILE)) {
+    env = fs.readFileSync(ENV_FILE, 'utf8');
+    env = env.replace(/BASE_URL=.*/g, `BASE_URL=${urls.frontend}`);
+    env = env.replace(/API_URL=.*/g, `API_URL=${urls.backend}`);
+  } else {
+    env = `BASE_URL=${urls.frontend}\nAPI_URL=${urls.backend}\n`;
+  }
   fs.writeFileSync(ENV_FILE, env, 'utf8');
   console.log('Updated .env.local with latest URLs:', urls);
 }

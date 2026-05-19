@@ -11,6 +11,9 @@ export async function login(page: Page, email: string, password: string): Promis
     // Print any error message shown on the login page
     const errorMsg = await page.locator('[role="alert"], .error, .alert').first().textContent();
     console.error('Login failed. Error message:', errorMsg);
+    // Print the full page content for debugging (to see if it's HTML)
+    const pageContent = await page.content();
+    console.error('Login failed. Full page content:', pageContent.slice(0, 500)); // Print first 500 chars
     throw e;
   }
 }
