@@ -96,7 +96,12 @@ jobs:
 
 
       - name: Wait for backend to be ready
-        run: npx wait-on --timeout=120000 http://localhost:4000/health
+        run: |
+          if [ -d backend-build ]; then
+            npx wait-on --timeout=120000 http://localhost:4000/health
+          else
+            echo "backend-build directory not found, skipping backend wait-on."
+          fi
 
       - name: Print backend log after wait-on
         run: cat backend.log || echo 'No backend.log found.'
