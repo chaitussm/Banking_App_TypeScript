@@ -70,12 +70,20 @@ jobs:
 
       - name: Install backend dependencies
         run: |
-          cd backend-build && npm ci --prefer-offline --no-audit --progress=false
+          if [ -d backend-build ]; then
+            cd backend-build && npm ci --prefer-offline --no-audit --progress=false
+          else
+            echo "backend-build directory not found, skipping backend dependency install."
+          fi
 
 
       - name: Start backend server
         run: |
-          cd backend-build && nohup npm start > ../backend.log 2>&1 &
+          if [ -d backend-build ]; then
+            cd backend-build && nohup npm start > ../backend.log 2>&1 &
+          else
+            echo "backend-build directory not found, skipping backend server start."
+          fi
 
       - name: Print backend log after backend start
         run: cat backend.log || echo 'No backend.log found.'
