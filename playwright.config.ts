@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '.env.local') });
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 export default defineConfig({
   testDir: './tests',
@@ -16,13 +18,14 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ['json', { outputFile: 'playwright-report.json' }],
   ],
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:5174',
     trace: 'on-first-retry',
     screenshot: 'on',
     video: 'retain-on-failure',
-    headless: process.env.CI ? true : false // Show browser locally, headless in CI/cloud
+    headless: true
   },
   projects: [
     {

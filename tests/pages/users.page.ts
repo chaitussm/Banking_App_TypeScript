@@ -4,7 +4,7 @@ export class UsersPage {
   constructor(private page: Page) {}
 
   async goto() {
-    await this.page.goto('http://localhost:5174/users');
+    await this.page.goto('/users');
   }
 
   async isUsersHeadingVisible() {
