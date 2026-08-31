@@ -4,7 +4,7 @@ export class AccountsPage {
   constructor(private page: Page) {}
 
   async goto() {
-    await this.page.goto('http://localhost:5174/accounts');
+    await this.page.goto('/accounts');
   }
 
   async isAccountsHeadingVisible() {

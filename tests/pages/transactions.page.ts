@@ -4,7 +4,7 @@ export class TransactionsPage {
   constructor(private page: Page) {}
 
   async goto() {
-    await this.page.goto('http://localhost:5174/transactions');
+    await this.page.goto('/transactions');
   }
 
   async isTransactionsHeadingVisible() {
