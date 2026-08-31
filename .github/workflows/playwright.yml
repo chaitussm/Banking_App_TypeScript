@@ -1,11 +1,14 @@
 name: Playwright E2E Tests
 
 on:
-  workflow_dispatch:
   push:
     branches: [master]
   pull_request:
     branches: [master]
+  schedule:
+    # 12:00 AM IST = 6:30 PM UTC
+    - cron: '30 18 * * *'
+  workflow_dispatch:
 
 jobs:
   e2e:
