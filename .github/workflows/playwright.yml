@@ -64,3 +64,25 @@ jobs:
             test-results
             playwright-report.json
           if-no-files-found: ignore
+
+      - name: Generate HTML email report
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 scripts/generate_email_report.py
+
+      - name: Send email with HTML report
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "Playwright E2E Tests - ${{ job.status }} | ${{ github.sha }}"
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.SMTP_USERNAME }}
+          html_body: file://email-report.html
